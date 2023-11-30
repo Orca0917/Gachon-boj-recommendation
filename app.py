@@ -1,17 +1,19 @@
+import time
+import pytz
 import pandas as pd
 import streamlit as st
+from datetime import datetime
 from module import MF, UBCF, CBCF, utils
 
 
 # -- preparing dataset
-solvedac_gachon_user = pd.read_csv("./data/dataset_solvedac_user_information.csv")[
+solvedac_gachon_user = pd.read_csv("./data/gachon_algorithm_stats.csv")[
     "userName"
 ].unique()
-boj_gachon_user = pd.read_csv("./data/dataset_gachon_userinformation.csv")[
+boj_gachon_user = pd.read_csv("./data/gachon_user_data.csv")[
     "userName"
 ].unique()
 sim_users = None
-
 
 # Callback 함수 정의
 def on_algorithm_change():
@@ -85,13 +87,13 @@ st.sidebar.markdown(
     """
     ---
     <img src="https://github.com/Orca0917/Orca0917.github.io/assets/91870042/b7796ace-9bef-4007-b451-5813a913d02f" width="32" height="28"> [Baekjoon Online Judge](https://www.acmicpc.net)  
-    <img src="https://static.solved.ac/logo.svg" width="32" height="32"> [Solved.ac](https://www.solved.ac)
+    <img src="https://static.solved.ac/logo.svg" width="32" height="32"> [Solved.ac](https://solved.ac/)
     """,
     unsafe_allow_html=True,
 )
 
 # 제목 추가
-st.title("가천대학교 백준 문제 추천 서비스 $$\\alpha$$ 버전")
+st.title("가천대학교 백준 문제 추천 서비스")
 
 # 설명글 추가
 st.markdown(
@@ -137,6 +139,7 @@ if st.button("문제 추천받기"):
 if (
     "user_id" in st.session_state
     and "algorithm" in st.session_state
+    and st.session_state["user_id"] is not None
 ):
     selected_algorithm = st.session_state["algorithm"]
     user_id = st.session_state["user_id"]
@@ -158,6 +161,7 @@ if (
             step=0.1,
         )
         with st.spinner(f"{user_id} 님을 위한 문제를 준비중입니다 🏃🏻‍♂️"):
+            utils.cnt_req_mf += 1
             recommended_problems = MF.predict(user_id=user_id, threshold=threshold)
         recommended_problems = utils.get_problem_information(recommended_problems)
 
@@ -170,6 +174,7 @@ if (
             step=1,
         )
         with st.spinner(f"{user_id} 님을 위한 문제를 준비중입니다 🏃🏻‍♂️"):
+            utils.cnt_req_ubcf += 1
             recommended_problems, sim_users = UBCF.predict(user_id=user_id, threshold=threshold)
         recommended_problems = utils.get_problem_information(recommended_problems)
 
@@ -191,13 +196,13 @@ if (
                 step=1,
             )
             with st.spinner(f"{user_id} 님을 위한 문제를 준비중입니다 🏃🏻‍♂️"):
+                utils.cnt_req_cbcf += 1
                 recommended_problems, sim_users = CBCF.predict(
                     user_id=user_id, num_similar_users=threshold
                 )
             recommended_problems = utils.get_problem_information(recommended_problems)
             # 4. 너무 쉬운 문제는 제거하기 위해, minimum으로 해당 사용자의 티어 - 3 이하의 문제는 추천되지 않도록 한다,
 
-    print(sim_users)
     if st.session_state["algorithm"] is not None:
         st.markdown(
             """
@@ -244,3 +249,10 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+utils.cnt_visit += 1
+
+local_tz = pytz.timezone('Asia/Seoul')
+local_time = datetime.now(local_tz)
+formatted_time = local_time.strftime('%H:%M:%S')
+print(f"[INFO #{formatted_time}] visit={utils.cnt_visit:<5}, mf={utils.cnt_req_mf:<5}, ubcf={utils.cnt_req_ubcf:<5}, cbcf={utils.cnt_req_cbcf:<5}")

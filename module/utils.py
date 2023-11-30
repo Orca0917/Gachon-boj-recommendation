@@ -1,8 +1,12 @@
 import pandas as pd
 
+cnt_visit = 0
+cnt_req_mf = 0
+cnt_req_ubcf = 0
+cnt_req_cbcf = 0
 
-problem_info_df = pd.read_csv("./data/filtered_problem_information.csv")
-user_tier_df = pd.read_csv("./data/gachon_user_tier.csv")
+problem_info_df     = pd.read_csv("./data/preprocessed_problem_data.csv")
+user_tier_df        = pd.read_csv("./data/gachon_user_tier.csv")
 
 column_map = {
     "problemId": "문제번호",
@@ -63,3 +67,5 @@ def get_user_tier(user_list: list):
         colors.append(difficulty_dict[tier])
 
     return colors
+    
+

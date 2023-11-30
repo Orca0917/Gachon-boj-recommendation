@@ -3,6 +3,9 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
 
+USER_DATA                   = "./data/gachon_user_data.csv"
+USER_ALGORITHM_STAT_DATA    = "./data/gachon_algorithm_stats.csv"
+
 def predict(user_id: str, num_similar_users: int):
     """
     Recommend new programming problems for a user, find similar users, and their similarity scores.
@@ -16,8 +19,8 @@ def predict(user_id: str, num_similar_users: int):
     """
 
     # Load datasets
-    solvedac_data = pd.read_csv('./data/dataset_solvedac_user_information.csv')
-    gachon_data = pd.read_csv('./data/dataset_gachon_userinformation.csv')
+    solvedac_data   = pd.read_csv(USER_ALGORITHM_STAT_DATA)
+    gachon_data     = pd.read_csv(USER_DATA)
 
     # Calculate cosine similarity between users
     user_tags = solvedac_data.iloc[:, 1:]

@@ -5,9 +5,9 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
 # Constants for file paths and number of problems
-PICKLE_SAVE_PATH = "./asset/user_based_collaborative_filtering.pickle"
-FILTERED_GACHON_USER_INFO = './data/filtered_gachon_userinformation.csv'
 MAPPING_PATH = "./asset/mapping.pickle"
+PICKLE_SAVE_PATH = "./asset/user_based_collaborative_filtering.pickle"
+PREPROCESSED_USER_DATA = './data/preprocessed_gachon_user_data.csv'
 N_PROBLEM = 10000  # Total number of problems
 
 
@@ -17,7 +17,7 @@ def train():
     """
     
     # Load dataset containing problem-solving records of students
-    user_data = pd.read_csv(FILTERED_GACHON_USER_INFO)
+    user_data = pd.read_csv(PREPROCESSED_USER_DATA)
 
     # Create mapping for user IDs to indices
     with open("./asset/mapping.pickle", "rb") as file:
@@ -64,7 +64,7 @@ def predict(user_id: str, threshold: int):
     index_to_user = {v: k for k, v in user_to_index.items()}
 
     # Get problems solved by the user
-    user_data = pd.read_csv(FILTERED_GACHON_USER_INFO)
+    user_data = pd.read_csv(PREPROCESSED_USER_DATA)
     solved_problems = user_data[user_data['userName'] == user_id]['problemId'].tolist()
 
     # Create a new user interaction vector

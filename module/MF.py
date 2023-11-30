@@ -6,10 +6,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import log_loss, mean_squared_error
 
 # Constants for file paths
-PICKLE_SAVE_PATH = "./asset/matrix_factorization.pickle"
-FILTERED_PROBLEM_PATH = "./data/filtered_problem_information.csv"
-FILTERED_USER_SOLVED_PROBLEM_PATH = "./data/filtered_gachon_userinformation.csv"
-USER_TIER_PATH = "./data/gachon_user_tier.csv"
+PICKLE_SAVE_PATH            = "./asset/matrix_factorization.pickle"
+PREPROCESSED_PROBLEM_DATA   = "./data/preprocessed_problem_data.csv"
+USER_TIER_DATA              = "./data/gachon_user_tier.csv"
+PREPROCESSED_USER_DATA      = "./data/preprocessed_gachon_user_data.csv"
 
 # Dictionary to map user tiers to numerical values
 tier_partition = {
@@ -29,7 +29,7 @@ def train(epoch=100, factor=300, lr=0.01):
     """
     
     # Load dataset with negative samples
-    rating_data = pd.read_csv("./data/merged_gachon_userinformation.csv")
+    rating_data = pd.read_csv("./data/negative_sampled_user_data.csv")
 
     # Extract unique user and item (problem) IDs
     users = rating_data['user_id'].unique()
@@ -87,8 +87,8 @@ def predict(user_id: str, threshold: float):
         user_to_index, item_to_index, index_to_item = pickle.load(file)
 
     # Get user's tier
-    user_tier_data = pd.read_csv(USER_TIER_PATH)
-    user_tier = user_tier_data.loc[user_tier_data["user_id"] == user_id, "tier"].item()
+    user_tier_df = pd.read_csv(USER_TIER_DATA)
+    user_tier = user_tier_df.loc[user_tier_df["user_id"] == user_id, "tier"].item()
     print(f"[DEBUG] Tier of user {user_id}: {user_tier}")
 
     # Define problem tier range based on threshold
@@ -97,12 +97,12 @@ def predict(user_id: str, threshold: float):
     print(f"[DEBUG] Recommended problem difficulty range for threshold {threshold}: {min_tier}, {max_tier}")
 
     # Load problem information and apply item ID mapping
-    problem_data = pd.read_csv(FILTERED_PROBLEM_PATH)
+    problem_data = pd.read_csv(PREPROCESSED_PROBLEM_DATA)
     problem_data["problemId"] = problem_data["problemId"].apply(lambda x: item_to_index.get(x, -1))
     problems = problem_data["problemId"].tolist()
 
     # Identify problems not yet solved by the user
-    user_solved_data = pd.read_csv(FILTERED_USER_SOLVED_PROBLEM_PATH)
+    user_solved_data = pd.read_csv(PREPROCESSED_USER_DATA)
     user_solved_data['problemId'] = user_solved_data['problemId'].apply(lambda x: item_to_index.get(x, -1))
     solved_problems = set(user_solved_data[user_solved_data["userName"] == user_to_index.get(user_id, -1)]["problemId"])
     unsolved_problems = [problem for problem in problems if problem not in solved_problems]
