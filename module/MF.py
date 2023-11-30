@@ -4,18 +4,15 @@ import pandas as pd
 from matrix_factorization import KernelMF
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import log_loss, mean_squared_error
-
-# Constants for file paths
-PICKLE_SAVE_PATH            = "./asset/matrix_factorization.pickle"
-PREPROCESSED_PROBLEM_DATA   = "./data/preprocessed_problem_data.csv"
-USER_TIER_DATA              = "./data/gachon_user_tier.csv"
-PREPROCESSED_USER_DATA      = "./data/preprocessed_gachon_user_data.csv"
+from config import Config
 
 # Dictionary to map user tiers to numerical values
 tier_partition = {
     0.0: 3, 0.1: 2, 0.2: 1, 0.3: 0, 0.4: -1, 0.5: -2,
     0.6: -3, 0.7: -4, 0.8: -5, 0.9: -7, 1.0: -8,
 }
+
+cfg = Config()
 
 
 def train(epoch=100, factor=300, lr=0.01):
@@ -29,7 +26,7 @@ def train(epoch=100, factor=300, lr=0.01):
     """
     
     # Load dataset with negative samples
-    rating_data = pd.read_csv("./data/negative_sampled_user_data.csv")
+    rating_data = pd.read_csv(cfg.NEGATIVE_SAMPLED_USER_DATA[0])
 
     # Extract unique user and item (problem) IDs
     users = rating_data['user_id'].unique()
@@ -60,11 +57,11 @@ def train(epoch=100, factor=300, lr=0.01):
     print(f"Log Loss: {logloss}, RMSE: {rmse}")
 
     # Save the trained model
-    with open(PICKLE_SAVE_PATH, 'wb') as file:
+    with open(cfg.ASSET_MF[0], 'wb') as file:
         pickle.dump(mf_model, file)
 
     # Save mapping information
-    with open("./asset/mapping.pickle", 'wb') as file:
+    with open(cfg.ASSET_MAPPING[0], 'wb') as file:
         pickle.dump([user_to_index, item_to_index, index_to_item], file)
 
 
@@ -81,13 +78,13 @@ def predict(user_id: str, threshold: float):
     """
     
     # Load the trained model and mapping information
-    with open(PICKLE_SAVE_PATH, "rb") as file:
+    with open(cfg.ASSET_MF[0], "rb") as file:
         model = pickle.load(file)
-    with open("./asset/mapping.pickle", "rb") as file:
+    with open(cfg.ASSET_MAPPING[0], "rb") as file:
         user_to_index, item_to_index, index_to_item = pickle.load(file)
 
     # Get user's tier
-    user_tier_df = pd.read_csv(USER_TIER_DATA)
+    user_tier_df = pd.read_csv(cfg.GACHON_USER_TIER_DATA[0])
     user_tier = user_tier_df.loc[user_tier_df["user_id"] == user_id, "tier"].item()
     print(f"[DEBUG] Tier of user {user_id}: {user_tier}")
 
@@ -97,12 +94,12 @@ def predict(user_id: str, threshold: float):
     print(f"[DEBUG] Recommended problem difficulty range for threshold {threshold}: {min_tier}, {max_tier}")
 
     # Load problem information and apply item ID mapping
-    problem_data = pd.read_csv(PREPROCESSED_PROBLEM_DATA)
+    problem_data = pd.read_csv(cfg.PREPROCESSED_PROBLEM_DATA[0])
     problem_data["problemId"] = problem_data["problemId"].apply(lambda x: item_to_index.get(x, -1))
     problems = problem_data["problemId"].tolist()
 
     # Identify problems not yet solved by the user
-    user_solved_data = pd.read_csv(PREPROCESSED_USER_DATA)
+    user_solved_data = pd.read_csv(cfg.PREPROCESSED_GACHON_USER_DATA[0])
     user_solved_data['problemId'] = user_solved_data['problemId'].apply(lambda x: item_to_index.get(x, -1))
     solved_problems = set(user_solved_data[user_solved_data["userName"] == user_to_index.get(user_id, -1)]["problemId"])
     unsolved_problems = [problem for problem in problems if problem not in solved_problems]
@@ -115,7 +112,6 @@ def predict(user_id: str, threshold: float):
     unsolved_problems_data["predicted_rating"] = model.predict(unsolved_problems_data)
     filtered_problems = unsolved_problems_data[(unsolved_problems_data['difficulty'] >= min_tier) & (unsolved_problems_data['difficulty'] <= max_tier)]
 
-    print(filtered_problems.head())
     # Select problems based on threshold
     recommended_problems = [
         index_to_item[problem]

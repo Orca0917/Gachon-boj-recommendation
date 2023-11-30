@@ -3,13 +3,11 @@ import pickle
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
+from config import Config
 
-# Constants for file paths and number of problems
-MAPPING_PATH = "./asset/mapping.pickle"
-PICKLE_SAVE_PATH = "./asset/user_based_collaborative_filtering.pickle"
-PREPROCESSED_USER_DATA = './data/preprocessed_gachon_user_data.csv'
 N_PROBLEM = 10000  # Total number of problems
 
+cfg = Config()
 
 def train():
     """
@@ -17,10 +15,10 @@ def train():
     """
     
     # Load dataset containing problem-solving records of students
-    user_data = pd.read_csv(PREPROCESSED_USER_DATA)
+    user_data = pd.read_csv(cfg.PREPROCESSED_USER_DATA[0])
 
     # Create mapping for user IDs to indices
-    with open("./asset/mapping.pickle", "rb") as file:
+    with open(cfg.ASSET_MAPPING[0], "rb") as file:
         user_to_index, item_to_index, index_to_item = pickle.load(file)
 
     # Extract unique users
@@ -37,7 +35,7 @@ def train():
         user_item_matrix[user_idx, problem_idx] = 1
 
     # Save the matrix for later use
-    with open(PICKLE_SAVE_PATH, 'wb') as file:
+    with open(cfg.ASEST_UBCF[0], 'wb') as file:
         pickle.dump(user_item_matrix, file)
 
 
@@ -56,15 +54,15 @@ def predict(user_id: str, threshold: int):
     """
     
     # Load the user-item interaction matrix and mappings
-    with open(PICKLE_SAVE_PATH, 'rb') as file:
+    with open(cfg.ASEST_UBCF[0], 'rb') as file:
         user_item_matrix = pickle.load(file)
-    with open("./asset/mapping.pickle", "rb") as file:
+    with open(cfg.ASSET_MAPPING[0], "rb") as file:
         user_to_index, item_to_index, index_to_item = pickle.load(file)
 
     index_to_user = {v: k for k, v in user_to_index.items()}
 
     # Get problems solved by the user
-    user_data = pd.read_csv(PREPROCESSED_USER_DATA)
+    user_data = pd.read_csv(cfg.PREPROCESSED_GACHON_USER_DATA[0])
     solved_problems = user_data[user_data['userName'] == user_id]['problemId'].tolist()
 
     # Create a new user interaction vector

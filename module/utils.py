@@ -1,12 +1,15 @@
 import pandas as pd
+from config import Config
+
+cfg = Config()
 
 cnt_visit = 0
 cnt_req_mf = 0
 cnt_req_ubcf = 0
 cnt_req_cbcf = 0
 
-problem_info_df     = pd.read_csv("./data/preprocessed_problem_data.csv")
-user_tier_df        = pd.read_csv("./data/gachon_user_tier.csv")
+problem_info_df     = pd.read_csv(cfg.PREPROCESSED_PROBLEM_DATA[0])
+user_tier_df        = pd.read_csv(cfg.GACHON_USER_TIER_DATA[0])
 
 column_map = {
     "problemId": "문제번호",

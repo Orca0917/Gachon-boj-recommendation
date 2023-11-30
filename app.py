@@ -4,13 +4,16 @@ import pandas as pd
 import streamlit as st
 from datetime import datetime
 from module import MF, UBCF, CBCF, utils
+from config import Config
+cfg = Config()
+
 
 
 # -- preparing dataset
-solvedac_gachon_user = pd.read_csv("./data/gachon_algorithm_stats.csv")[
+solvedac_gachon_user = pd.read_csv(cfg.GACHON_ALGORITHM_STATUS[0])[
     "userName"
 ].unique()
-boj_gachon_user = pd.read_csv("./data/gachon_user_data.csv")[
+boj_gachon_user = pd.read_csv(cfg.GACHON_USER_DATA[0])[
     "userName"
 ].unique()
 sim_users = None
