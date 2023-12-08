@@ -15,17 +15,10 @@ def train():
     Train a user-item interaction matrix based on the problem-solving history of users.
     """
     
-<<<<<<< HEAD
     # Load dataset containing problem-solving records
     user_data = pd.read_csv(cfg.PREPROCESSED_USER_DATA[0])
 
     # Load user and item mappings from a file
-=======
-    # Load dataset containing problem-solving records of students
-    user_data = pd.read_csv(cfg.PREPROCESSED_USER_DATA[0])
-
-    # Create mapping for user IDs to indices
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
     with open(cfg.ASSET_MAPPING[0], "rb") as file:
         user_to_index, item_to_index, index_to_item = pickle.load(file)
 
@@ -42,11 +35,7 @@ def train():
         problem_idx = item_to_index[row['problemId']]
         user_item_matrix[user_idx, problem_idx] = 1
 
-<<<<<<< HEAD
     # Save the user-item interaction matrix for later use
-=======
-    # Save the matrix for later use
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
     with open(cfg.ASEST_UBCF[0], 'wb') as file:
         pickle.dump(user_item_matrix, file)
 
@@ -71,11 +60,7 @@ def predict(user_id: str, threshold: int):
     # Reverse mapping for indices to users
     index_to_user = {v: k for k, v in user_to_index.items()}
 
-<<<<<<< HEAD
     # Get the problems solved by the user
-=======
-    # Get problems solved by the user
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
     user_data = pd.read_csv(cfg.PREPROCESSED_GACHON_USER_DATA[0])
     solved_problems = user_data[user_data['userName'] == user_id]['problemId'].tolist()
 

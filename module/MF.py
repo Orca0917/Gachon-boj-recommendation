@@ -5,14 +5,9 @@ from config import Config
 from matrix_factorization import KernelMF
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import log_loss, mean_squared_error
-<<<<<<< HEAD
-
-# Mapping user tiers to numerical values for partitioning
-=======
 from config import Config
 
 # Dictionary to map user tiers to numerical values
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
 tier_partition = {
     0.0: 3, 0.1: 2, 0.2: 1, 0.3: 0, 0.4: -1, 0.5: -2,
     0.6: -3, 0.7: -4, 0.8: -5, 0.9: -7, 1.0: -8,
@@ -24,8 +19,6 @@ cfg = Config()
 def train(epoch=100, factor=300, lr=0.01):
     """
     Train a matrix factorization model to predict user-item (problem) interactions.
-<<<<<<< HEAD
-=======
     
     Parameters:
     epoch (int): Number of training epochs.
@@ -33,16 +26,6 @@ def train(epoch=100, factor=300, lr=0.01):
     lr (float): Learning rate for training.
     """
     
-    # Load dataset with negative samples
-    rating_data = pd.read_csv(cfg.NEGATIVE_SAMPLED_USER_DATA[0])
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
-
-    Parameters:
-    epoch (int): Number of epochs for training.
-    factor (int): Number of latent factors in the model.
-    lr (float): Learning rate for the training process.
-    """
-
     # Load dataset with negative samples for training
     rating_data = pd.read_csv(cfg.NEGATIVE_SAMPLED_USER_DATA[0])
 
@@ -74,17 +57,9 @@ def train(epoch=100, factor=300, lr=0.01):
     rmse = mean_squared_error(test_y, predictions, squared=False)
     print(f"- Log Loss: {logloss}, \n- RMSE: {rmse}")
 
-<<<<<<< HEAD
     # Save the trained model and mapping data (commented out)
     with open(cfg.ASSET_MF[0], 'wb') as file:
         pickle.dump(mf_model, file)
-=======
-    # Save the trained model
-    with open(cfg.ASSET_MF[0], 'wb') as file:
-        pickle.dump(mf_model, file)
-
-    # Save mapping information
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
     with open(cfg.ASSET_MAPPING[0], 'wb') as file:
         pickle.dump([user_to_index, item_to_index, index_to_item], file)
 
@@ -101,21 +76,13 @@ def predict(user_id: str, threshold: float):
     list: List of recommended problem IDs.
     """
     
-<<<<<<< HEAD
     # Load trained model and mapping data
-=======
-    # Load the trained model and mapping information
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
     with open(cfg.ASSET_MF[0], "rb") as file:
         model = pickle.load(file)
     with open(cfg.ASSET_MAPPING[0], "rb") as file:
         user_to_index, item_to_index, index_to_item = pickle.load(file)
 
-<<<<<<< HEAD
     # Retrieve the user's tier from the dataset
-=======
-    # Get user's tier
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
     user_tier_df = pd.read_csv(cfg.GACHON_USER_TIER_DATA[0])
     user_tier = user_tier_df.loc[user_tier_df["user_id"] == user_id, "tier"].item()
 
@@ -123,11 +90,7 @@ def predict(user_id: str, threshold: float):
     min_tier = max(user_tier + tier_partition[round(threshold, 2)], 0)
     max_tier = min(min_tier + 20, 30)
 
-<<<<<<< HEAD
     # Load problem data and apply item ID mapping
-=======
-    # Load problem information and apply item ID mapping
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
     problem_data = pd.read_csv(cfg.PREPROCESSED_PROBLEM_DATA[0])
     problem_data["problemId"] = problem_data["problemId"].apply(lambda x: item_to_index.get(x, -1))
     problems = problem_data["problemId"].tolist()
@@ -146,11 +109,7 @@ def predict(user_id: str, threshold: float):
     unsolved_problems_data["predicted_rating"] = model.predict(unsolved_problems_data)
     filtered_problems = unsolved_problems_data[(unsolved_problems_data['difficulty'] >= min_tier) & (unsolved_problems_data['difficulty'] <= max_tier)]
 
-<<<<<<< HEAD
     # Select problems based on threshold and shuffle them
-=======
-    # Select problems based on threshold
->>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
     recommended_problems = [
         index_to_item[problem]
         for _, (problem, _, _, predicted_rating) in filtered_problems.iterrows()

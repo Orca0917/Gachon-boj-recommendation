@@ -6,7 +6,7 @@ Hello, this repository contains the code for a web service prototype for recomme
 
 This web service can be accessed at [https://gachonboj.kro.kr](https://gachonboj.kro.kr) and is currently only available for Gachon University students. The service is scheduled to run only until early December, and we will notify you as soon as it is ready again.
 
-<p style="text-align: center;">
+<p align="center">
 <img src="https://github.com/Orca0917/Gachon-boj-recommendation/assets/91870042/09f42896-a21f-4d80-bfdc-af547d455c2e" />
 </p>
 
