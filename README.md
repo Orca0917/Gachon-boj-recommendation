@@ -6,11 +6,10 @@ lang: [🇰🇷 한국어](https://github.com/Orca0917/Gachon-boj-recommendation
 
 본 웹서비스는 [https://gachonboj.kro.kr](https://gachonboj.kro.kr)에 접속해서 사용할 수 있으며 현재는 가천대학교 학생들을 대상으로만 서비스를 진행하고 있습니다. 12월 초까지만 서비스가 진행될 예정이며, 이후에 다시 준비되는대로 공지해드리겠습니다.
 
-<p style="text-align: center;">
+<p align="center">
 <img src="https://github.com/Orca0917/Gachon-boj-recommendation/assets/91870042/09f42896-a21f-4d80-bfdc-af547d455c2e" />
 </p>
 
-<br>
 
 
 ## Structure
