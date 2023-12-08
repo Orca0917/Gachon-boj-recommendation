@@ -1,5 +1,10 @@
 import pandas as pd
 from config import Config
+<<<<<<< HEAD
+=======
+
+cfg = Config()
+>>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
 
 cfg = Config()
 
@@ -9,9 +14,14 @@ cnt_req_mf = 0
 cnt_req_ubcf = 0
 cnt_req_cbcf = 0
 
+<<<<<<< HEAD
 # Loading preprocessed problem data and user tier data from the configuration
 problem_info_df = pd.read_csv(cfg.PREPROCESSED_PROBLEM_DATA[0])
 user_tier_df = pd.read_csv(cfg.GACHON_USER_TIER_DATA[0])
+=======
+problem_info_df     = pd.read_csv(cfg.PREPROCESSED_PROBLEM_DATA[0])
+user_tier_df        = pd.read_csv(cfg.GACHON_USER_TIER_DATA[0])
+>>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
 
 # Mapping column names from English to Korean
 column_map = {

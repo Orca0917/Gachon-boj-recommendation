@@ -7,6 +7,7 @@ from datetime import datetime
 from module import MF, UBCF, CBCF, utils
 from config import Config
 cfg = Config()
+<<<<<<< HEAD
 
 
 
@@ -14,6 +15,18 @@ cfg = Config()
 aws_apigateway_url = "https://evkdmpdtql.execute-api.ap-northeast-2.amazonaws.com/gachonboj-stage/gachonboj-{}"
 solvedac_gachon_user = pd.read_csv(cfg.GACHON_ALGORITHM_STATUS[0])["userName"].unique()
 boj_gachon_user = pd.read_csv(cfg.GACHON_USER_DATA[0])["userName"].unique()
+=======
+
+
+
+# -- preparing dataset
+solvedac_gachon_user = pd.read_csv(cfg.GACHON_ALGORITHM_STATUS[0])[
+    "userName"
+].unique()
+boj_gachon_user = pd.read_csv(cfg.GACHON_USER_DATA[0])[
+    "userName"
+].unique()
+>>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
 sim_users = None
 
 # Define a callback function for when the algorithm selection changes

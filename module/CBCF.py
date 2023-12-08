@@ -2,9 +2,13 @@ import random
 import pandas as pd
 from config import Config
 from sklearn.metrics.pairwise import cosine_similarity
+from config import Config
 
 cfg = Config()
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
 
 def predict(user_id: str, num_similar_users: int):
     """
@@ -18,9 +22,15 @@ def predict(user_id: str, num_similar_users: int):
     tuple: A tuple containing a list of recommended problem IDs, a list of similar user IDs, and their similarity scores.
     """
 
+<<<<<<< HEAD
     # Load datasets from specified configuration paths
     solvedac_data = pd.read_csv(cfg.GACHON_ALGORITHM_STATUS[0])
     gachon_data = pd.read_csv(cfg.PREPROCESSED_GACHON_USER_DATA[0])
+=======
+    # Load datasets
+    solvedac_data   = pd.read_csv(cfg.GACHON_ALGORITHM_STATUS[0])
+    gachon_data     = pd.read_csv(cfg.PREPROCESSED_GACHON_USER_DATA[0])
+>>>>>>> 6aab76bf53d15124a3fb8947954e7544c71c7f81
 
     # Calculate cosine similarity between users based on their tags
     user_tags = solvedac_data.iloc[:, 1:]
