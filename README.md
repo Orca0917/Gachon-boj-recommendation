@@ -1,6 +1,6 @@
 # Gachon-boj-recommendation
 
-lang: [🇰🇷](https://github.com/Orca0917/Gachon-boj-recommendation) | [🇺🇸](https://github.com/Orca0917/Gachon-boj-recommendation/blob/main/README-us.md)
+lang: [🇰🇷 한국어](https://github.com/Orca0917/Gachon-boj-recommendation) | [🇺🇸 ENGLISH](https://github.com/Orca0917/Gachon-boj-recommendation/blob/main/README-us.md)
 
 안녕하세요, 본 레포지토리는 가천대학교 학생들을 위한 백준 알고리즘 문제추천을 주제로 한 웹 서비스 프로토타입에 대한 코드를 담고 있습니다. 실제로 서비스를 진행하기 위해서는 별도의 AWS관련 계정 설정정보와 데이터셋의 준비가 필요합니다. 문제가 될 수 있어 데이터셋은 레포지토리에 포함시키지 않은 부분 양해해주시기 바랍니다.
 
@@ -105,6 +105,11 @@ $$ \text{RMSE} = \sqrt{\sum_{i=1}^n \frac{(\hat{y}_i - y_i)}{n}} \qquad \text{lo
 
 UBCF와 유사하게 해당 알고리즘 풀이실력과 가장 유사한 다른 유저를 찾아 문제를 추천하게 됩니다. 문제풀이 이력과는 별도로 점수로 측정되기 때문에 실력에 맞는 문제를 풀 수 있다는 장점이 있습니다.
 
+<br>
+
+## AWS Service Architecture
+
+![image](https://github.com/Orca0917/Gachon-boj-recommendation/assets/91870042/323357b0-998d-45d2-b8e8-baa8ae26ccd8)
 
 <br>
 
