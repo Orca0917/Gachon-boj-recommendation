@@ -1,38 +1,34 @@
-import time
+import requests
+import json
 import pytz
 import pandas as pd
 import streamlit as st
 from datetime import datetime
 from module import MF, UBCF, CBCF, utils
+from config import Config
+cfg = Config()
 
 
-# -- preparing dataset
-solvedac_gachon_user = pd.read_csv("./data/gachon_algorithm_stats.csv")[
-    "userName"
-].unique()
-boj_gachon_user = pd.read_csv("./data/gachon_user_data.csv")[
-    "userName"
-].unique()
+
+# Preparing the dataset
+aws_apigateway_url = "https://evkdmpdtql.execute-api.ap-northeast-2.amazonaws.com/gachonboj-stage/gachonboj-{}"
+solvedac_gachon_user = pd.read_csv(cfg.GACHON_ALGORITHM_STATUS[0])["userName"].unique()
+boj_gachon_user = pd.read_csv(cfg.GACHON_USER_DATA[0])["userName"].unique()
 sim_users = None
 
-# Callback 함수 정의
+# Define a callback function for when the algorithm selection changes
 def on_algorithm_change():
-    # 현재 선택된 알고리즘이 이전과 다를 경우 session state 초기화
-    if (
-        "selected_algorithm" in st.session_state
-        and st.session_state["selected_algorithm"]
-        != st.session_state["algorithm_select"]
-    ):
+    # Reset session state if the selected algorithm changes
+    if "selected_algorithm" in st.session_state and st.session_state["selected_algorithm"] != st.session_state["algorithm_select"]:
         st.session_state["user_id"] = None
         st.session_state["algorithm"] = None
 
-    # 현재 선택된 알고리즘을 저장
+    # Store the currently selected algorithm
     st.session_state["selected_algorithm"] = st.session_state["algorithm_select"]
 
-
-# 문제 추천 알고리즘을 선택할 수 있는 사이드바
+# Sidebar for selecting the recommendation algorithm
 algorithm = st.sidebar.selectbox(
-    "문제추천에 사용될 알고리즘 선택",
+    "Select the algorithm to be used for problem recommendation",
     [
         "Matrix Factorization",
         "User Based Collaborative Filtering",
@@ -92,10 +88,10 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-# 제목 추가
+# Adding title and description
 st.title("가천대학교 백준 문제 추천 서비스")
 
-# 설명글 추가
+# Description of the website
 st.markdown(
     """
     ### 👋 안녕하세요  
@@ -117,15 +113,16 @@ st.markdown(
 
 st.write("\n" * 5)
 
-# 사용자 ID 입력
+# User ID input
 user_id = st.text_input(
     "나의 백준아이디 입력하기",
     help="백준에서 사용되는 아이디를 입력하는 공간입니다. Gachon-student-001와 같은 아이디를 사용할 수 있습니다.",
     placeholder="Gachon-student-001",
 )
 
-# '확인하기' 버튼
+# Button for getting recommendations
 if st.button("문제 추천받기"):
+    # Check if the user ID is in the list of known users
     if user_id not in boj_gachon_user:
         st.error(f"{user_id} 님을 가천대학교 재학생 목록 중 찾아보려고 했지만, 찾지 못했습니다😢 아직 재학생 목록에 반영되어 있지 않을 수 있으므로 내일 다시 시도해보시기 바랍니다.")
         st.session_state["algorithm"] = None
@@ -135,7 +132,7 @@ if st.button("문제 추천받기"):
         st.session_state["user_id"] = user_id
 
 
-# 슬라이더 및 추천 결과 표시
+# Slider for adjusting recommendation parameters and displaying recommended problems
 if (
     "user_id" in st.session_state
     and "algorithm" in st.session_state
@@ -162,7 +159,23 @@ if (
         )
         with st.spinner(f"{user_id} 님을 위한 문제를 준비중입니다 🏃🏻‍♂️"):
             utils.cnt_req_mf += 1
-            recommended_problems = MF.predict(user_id=user_id, threshold=threshold)
+            json_data = json.dumps (
+                {
+                    "user_id": user_id,
+                    "threshold": threshold
+                }
+            )
+            response = requests.post(
+                url=aws_apigateway_url.format("mf"),
+                data=json_data,
+                headers={
+                    "Content-Type": "application/json"
+                }
+            )
+            parsed_json = json.loads(response.text)
+            body = json.loads(parsed_json['body'])
+            recommended_problems = body['result']
+            # recommended_problems = MF.predict(user_id=user_id, threshold=threshold)
         recommended_problems = utils.get_problem_information(recommended_problems)
 
     elif selected_algorithm == "User Based Collaborative Filtering":
@@ -175,7 +188,24 @@ if (
         )
         with st.spinner(f"{user_id} 님을 위한 문제를 준비중입니다 🏃🏻‍♂️"):
             utils.cnt_req_ubcf += 1
-            recommended_problems, sim_users = UBCF.predict(user_id=user_id, threshold=threshold)
+            json_data = json.dumps (
+                {
+                    "user_id": user_id,
+                    "n_similar": threshold
+                }
+            )
+            response = requests.post(
+                url=aws_apigateway_url.format("ubcf"),
+                data=json_data,
+                headers={
+                    "Content-Type": "application/json"
+                }
+            )
+            parsed_json = json.loads(response.text)
+            body = json.loads(parsed_json['body'])
+            recommended_problems = body['result']
+            sim_users = body['similarity']
+            # recommended_problems, sim_users = UBCF.predict(user_id=user_id, threshold=threshold)
         recommended_problems = utils.get_problem_information(recommended_problems)
 
     elif selected_algorithm == "Content Based Collaborative Filtering":
@@ -197,9 +227,26 @@ if (
             )
             with st.spinner(f"{user_id} 님을 위한 문제를 준비중입니다 🏃🏻‍♂️"):
                 utils.cnt_req_cbcf += 1
-                recommended_problems, sim_users = CBCF.predict(
-                    user_id=user_id, num_similar_users=threshold
+                json_data = json.dumps (
+                    {
+                        "user_id": user_id,
+                        "n_similar": threshold
+                    }
                 )
+                response = requests.post(
+                    url=aws_apigateway_url.format("cbcf"),
+                    data=json_data,
+                    headers={
+                        "Content-Type": "application/json"
+                    }
+                )
+                parsed_json = json.loads(response.text)
+                body = json.loads(parsed_json['body'])
+                recommended_problems = body['result']
+                sim_users = body['similarity']
+                # recommended_problems, sim_users = CBCF.predict(
+                #     user_id=user_id, num_similar_users=threshold
+                # )
             recommended_problems = utils.get_problem_information(recommended_problems)
             # 4. 너무 쉬운 문제는 제거하기 위해, minimum으로 해당 사용자의 티어 - 3 이하의 문제는 추천되지 않도록 한다,
 
@@ -239,19 +286,20 @@ if (
                 )
 
 
-# 페이지 하단에 저작권 문구 추가
+# Footer for copyright notice
 st.markdown(
     """
     ---
     사용자 정보 및 재학생 정보는 매일 정오에 업데이트 됩니다.  
     버그 및 오류 제보: 0917jong@gachon.ac.kr  
-    개발: 오명석, 유종문, 장원준, 최수미
+    개발: 유종문, 장원준, 오명석, 최수미
     """,
     unsafe_allow_html=True,
 )
 
 utils.cnt_visit += 1
 
+# Tracking and logging visits and requests
 local_tz = pytz.timezone('Asia/Seoul')
 local_time = datetime.now(local_tz)
 formatted_time = local_time.strftime('%H:%M:%S')

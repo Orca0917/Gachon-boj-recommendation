@@ -1,47 +1,48 @@
 import random
 import pandas as pd
 from tqdm import tqdm
+from config import Config
 from collections import Counter
 
-
-# Constants for file paths
-PROBLEM_INFO_DATA           = "../data/problem_info_data.csv"
-PROBLEM_TIER_DATA           = "../data/problem_tier_data.csv"
-PROBLEM_DATA                = "../data/problem_data.csv"
-
-PREPROCESSED_PROBLEM_DATA   = "../data/preprocessed_problem_data.csv"
-
-USER_DATA                   = "../data/gachon_user_data.csv"
-PREPROCESSED_USER_DATA      = "../data/preprocessed_gachon_user_data.csv"
-
-NEGATIVE_SAMPLED_USER_DATA  = "../data/negative_sampled_user_data.csv"  # positive + negative samples
+cfg = Config()
 
 
 def mege_problem_information():
-    problem_info_df = pd.read_csv(PROBLEM_INFO_DATA)
-    probelm_tier_df = pd.read_csv(PROBLEM_TIER_DATA)
+    """
+    Merges problem information and problem tier data, then saves the combined data.
+    """
+    # Load problem information and tier data
+    problem_info_df = pd.read_csv(cfg.PROBLEM_INFO_DATA[0])
+    problem_tier_df = pd.read_csv(cfg.PROBLEM_TIER_DATA[0])
 
-    problem_df = problem_info_df.merge(probelm_tier_df, on='problemId', how='left')
+    # Merge the two dataframes on 'problemId' and sort by it
+    problem_df = problem_info_df.merge(problem_tier_df, on='problemId', how='left')
     problem_df = problem_df.sort_values(by='problemId')
+
+    # Fill missing tier values with 0
     problem_df['tier'] = problem_df['tier'].fillna(0)
 
-    problem_df.to_csv(PROBLEM_DATA, index=False)
+    # Save the merged data to a file
+    problem_df.to_csv(cfg.PROBLEM_DATA[0], index=False)
 
 
 def filter_problems(threshold):
     """
-    Filter problems based on the number of times they have been solved.
+    Filters problems based on the minimum number of times they have been solved.
     
     Parameters:
-    threshold (int): The minimum number of times a problem should be solved to be included.
+    threshold (int): Minimum number of times a problem should be solved to be included.
     """
-    
-    # Load problem data and apply filter
-    problem_df = pd.read_csv(PROBLEM_DATA)
+    # Load the merged problem data
+    problem_df = pd.read_csv(cfg.PROBLEM_DATA[0])
+
+    # Apply the threshold filter
     filtered_data = problem_df[problem_df['solved'] >= threshold]
-    filtered_data.to_csv(PREPROCESSED_PROBLEM_DATA, index=False)
+
+    # Save the filtered data
+    filtered_data.to_csv(cfg.PREPROCESSED_PROBLEM_DATA[0], index=False)
     
-    # Display stats about the filtered problems
+    # Display statistics about the filtered problems
     difficulty_counts = Counter(filtered_data['difficulty'].values)
     print("- Total number of problems:", sum(difficulty_counts.values()))
     print(sorted(difficulty_counts.items()))
@@ -49,40 +50,40 @@ def filter_problems(threshold):
 
 def filter_user_solved_problems():
     """
-    Filter user-solved problems based on the filtered problems list.
-    사용자가 문제를 푼 목록 중, 문제가 threshold회 이상 풀린것들만 남기기
+    Filters user-solved problems based on the list of filtered problems.
     """
-    
-    preprocessed_problem_df = pd.read_csv(PREPROCESSED_PROBLEM_DATA)
-    user_df = pd.read_csv(USER_DATA)
-    
-    # Convert problem IDs to integers
+    # Load preprocessed problem data and original user data
+    preprocessed_problem_df = pd.read_csv(cfg.PREPROCESSED_PROBLEM_DATA[0])
+    user_df = pd.read_csv(cfg.USER_DATA[0])
+
+    # Convert problem IDs to integers for comparison
     filtered_problems = [int(problem) for problem in preprocessed_problem_df['problemId'].tolist()]
     preprocessed_user_data = []
 
-    # Filter user solved problems
+    # Filter out solved problems not in the filtered problems list
     for _, (user_name, problem_id, user_tier) in tqdm(user_df.iterrows(), total=len(user_df)):
         if int(problem_id) in filtered_problems:
             preprocessed_user_data.append([user_name, int(problem_id), int(user_tier)])
-        
-    # Save the filtered data
-    preprocessed_user_df = pd.DataFrame(data=preprocessed_user_data, columns=["userName", "problemId". "userTier"])
-    preprocessed_user_df.to_csv(PREPROCESSED_USER_DATA, index=False)
+    
+    # Save the filtered user data
+    preprocessed_user_df = pd.DataFrame(data=preprocessed_user_data, columns=["userName", "problemId", "userTier"])
+    preprocessed_user_df.to_csv(cfg.PREPROCESSED_USER_DATA[0], index=False)
 
 
 def perform_negative_sampling(negative_proportion=0.5):
     """
-    Perform negative sampling for the user-problem interactions.
+    Performs negative sampling for the user-problem interactions to balance the dataset.
     
     Parameters:
-    negative_proportion (float): Proportion of negative samples relative to positive samples.
+    negative_proportion (float): Proportion of negative samples compared to positive samples.
     """
-    
-    preprocessed_user_df = pd.read_csv(PREPROCESSED_USER_DATA)
+    # Load preprocessed user data
+    preprocessed_user_df = pd.read_csv(cfg.PREPROCESSED_USER_DATA[0])
     preprocessed_user_df = preprocessed_user_df.rename(columns={'userName': 'user_id', 'problemId': 'item_id'})
-    preprocessed_user_df['rating'] = 1  # Assigning a positive rating
+    preprocessed_user_df['rating'] = 1  # Assigning a positive rating to existing interactions
 
-    problem_info = pd.read_csv(PREPROCESSED_PROBLEM_DATA)
+    # Load problem data
+    problem_info = pd.read_csv(cfg.PREPROCESSED_PROBLEM_DATA[0])
     problems = problem_info["problemId"].tolist()
     users = preprocessed_user_df['user_id'].unique()
 
@@ -98,15 +99,15 @@ def perform_negative_sampling(negative_proportion=0.5):
         sampled_negatives = unsolved_problems[:num_negative_samples]
         negative_samples.extend([[user, problem] for problem in sampled_negatives])
 
-    # Create DataFrame for negative samples and merge with positive samples
+    # Combine negative samples with positive samples and save
     negative_sample_df = pd.DataFrame(negative_samples, columns=["user_id", "item_id"])
-    negative_sample_df['rating'] = 0
+    negative_sample_df['rating'] = 0  # Assigning a negative rating to these interactions
 
     merged_data = pd.concat([preprocessed_user_df, negative_sample_df], ignore_index=True)
-    merged_data.to_csv(NEGATIVE_SAMPLED_USER_DATA, index=False)
-
+    merged_data.to_csv(cfg.NEGATIVE_SAMPLED_USER_DATA[0], index=False)
 
 if __name__ == "__main__":
+    # Execute the defined functions to process the problem data
     mege_problem_information()
     filter_problems(threshold=100)
     filter_user_solved_problems()
